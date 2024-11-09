@@ -57,7 +57,7 @@ class Genome:
         if len(self.numbers) == 1:
             return Node(self.numbers[0])
 
-        numOfOperands = random.randint(2, len(self.numbers))
+        numOfOperands = random.randint(2, len(self.numbers)-1)
         chosenOperands = random.sample(self.numbers, k = numOfOperands)
         
         return self.__generate(chosenOperands)

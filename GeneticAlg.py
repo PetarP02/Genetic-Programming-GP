@@ -2,7 +2,6 @@ from genome import Genome
 from node import Node
 import copy as cp
 import random
-import matplotlib.pyplot as plt
 import time
 
 class GenProg:

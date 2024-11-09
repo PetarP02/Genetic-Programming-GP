@@ -63,7 +63,6 @@ class GenProg:
 
     def findSolution(self) -> list:
         startintTime = time.perf_counter()
-        print(startintTime)
         graph = []
         
         for i in range(self.__epochs):

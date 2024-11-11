@@ -29,7 +29,7 @@ class GenProg:
         crossover(genome1, genome2): Performs crossover between two genomes to produce two new offspring genomes.
         tournament(): Selects genomes from the population using a tournament selection method, returning indexes of selected genomes.
     """
-    def __init__(self, goal: int, numbers: list, populationSize: int = 10, elitism: int = 0, mutationChance: float = 0.05, epochs: int = 10) -> 'GenProg':
+    def __init__(self, goal: int, numbers: list, populationSize: int = 100, elitism: int = 0, mutationChance: float = 0.05, epochs: int = 10) -> 'GenProg':
         """
         Initializes a GenProg instance with the specified target goal, population size, mutation chance, and number of epochs.
 
@@ -59,16 +59,17 @@ class GenProg:
 
         self.bestFit = None
         self.population = [Genome(self.__goal, self.__numbers, self.__mutationChance) for _ in range(self.__populationSize)]
-        self.__newPopulation = [Genome(0, [0]) for _ in range(self.__populationSize)]
+        self.__newPopulation = [Genome(self.__goal, [0]) for _ in range(self.__populationSize)]
 
     def findSolution(self) -> list:
         startintTime = time.perf_counter()
         graph = []
         
         for i in range(self.__epochs):
+            self.population.sort(reverse=True)
+
             if i % 100 == 0:
                 print(f"{i} : {time.perf_counter() - startintTime} s")
-            self.population.sort(reverse=True)
 
             graph.append(self.population[0].getFitness())
 
@@ -77,7 +78,7 @@ class GenProg:
 
             self.__newPopulation[:self.__elitism] = self.population[:self.__elitism]
 
-            for j in range(self.__elitism, self.__populationSize - 1):
+            for j in range(self.__elitism, self.__populationSize - 1, 2):
                 idx1, idx2 = self.tournament()
 
                 self.__newPopulation[j], self.__newPopulation[j+1] = self.crossover(self.population[idx1], self.population[idx2])
@@ -89,7 +90,10 @@ class GenProg:
             
         best = max(self.population)
         self.bestFit = cp.deepcopy(best)
-        print(f"elapse time : {time.perf_counter() - startintTime : .6f} s - solution: {best} - value: {best.gene.value} - fitness: {best.getFitness()}")
+        
+        endingTime = time.perf_counter() - startintTime
+        print(f"elapse time : {endingTime//60 : .6f} m {endingTime%60 : .6f} s - solution: {best} - value: {best.gene.value} - fitness: {best.getFitness()}")
+        
         return graph
     
     def crossover(self, genome1: 'Genome', genome2: 'Genome') -> list:

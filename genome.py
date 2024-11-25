@@ -2,6 +2,14 @@ from node import Node
 import copy as cp
 import random
 
+# n is size of tree
+    #__makeGene : O(n)
+    # __generate : O(n)
+    # getFitness : O(n)
+    # isValid : O(n^2) removal of elements in list is O(N) where N is size of list
+    # mutate() : O(n log n)  
+    # _mutateNode() : O(n log n)
+
 class Genome:
     """
     Represents a genome with a specific target fitness goal and a list of numerical values. 
@@ -45,15 +53,17 @@ class Genome:
         self.numbers = numbers
         self.chance = chance
         self.gene = self.__makeGene()
-
-    # __makeGene : O(...)
-    # __generate : O(...)
-    # getFitness : O(n)
-    # isValid : O(n)
-    # mutate() : O(n log n)  
-    # _mutateNode() : O(n log n)
     
     def __makeGene(self) -> 'Node':
+        """
+        Constructs the initial binary expression tree for the genome.
+    
+        If the `numbers` list contains only one value, creates a single-node tree.
+        Otherwise, randomly selects operands and constructs a binary tree with random operations.
+    
+        Returns:
+            Node: The root of the binary expression tree representing the genome.
+        """
         if len(self.numbers) == 1:
             return Node(self.numbers[0])
 
@@ -63,21 +73,50 @@ class Genome:
         return self.__generate(chosenOperands)
 
     def __generate(self, givenList: list) -> 'Node':
+        """
+        Recursively generates a binary tree from a list of operands with random operations.
+    
+        Args:
+            givenList (list): A list of operands to construct the binary tree.
+    
+        Returns:
+            Node: The root of the binary tree constructed from the given list.
+        """
         if len(givenList) == 1:
             return Node(givenList[0])
 
-        op = random.choice(['+', '-', '*']) #['+', '-', '*', '/'] 
+        op = random.choice(['+', '-', '*', '/']) #['+', '-', '*'] 
         index = random.randint(1, len(givenList) - 1) 
         left = self.__generate(givenList[:index]) 
         right = self.__generate(givenList[index:]) 
         return Node(left, op, right)
         
     def getFitness(self):
+        """
+        Calculates the fitness of the genome based on its closeness to the target goal.
+    
+        The fitness is scaled between 0 and 100, where higher values represent better approximations.
+        If the genome's expression is invalid, the fitness is 0.
+    
+        Returns:
+            float: The fitness score of the genome.
+        """
         if not self.isValid():
             return 0
         return 100 * (1 - abs(self.goal - self.gene.value) / (abs(self.goal) + 1))
 
     def isValid(self):
+        """
+        Validates whether the genome's expression meets the required constraints.
+    
+        Checks that:
+        - The expression evaluates to an integer.
+        - The size of the binary tree does not exceed the maximum allowable size.
+        - The expression uses only the specified numbers.
+    
+        Returns:
+            bool: True if the genome is valid, False otherwise.
+        """
         if not self.gene.value.is_integer() or self.gene.size > 2*len(self.numbers)-1:
             return False
             
@@ -90,6 +129,16 @@ class Genome:
             return False
     
     def mutate(self):
+        """
+        Applies mutation to the genome, modifying its expression tree.
+    
+        Mutations include:
+        - Adding a new subtree with a random operand and operation.
+        - Replacing a subtree with a new randomly generated tree.
+        - Mutating individual nodes in the expression tree by altering their operands or operations.
+    
+        The mutation occurs probabilistically based on the mutation chance.
+        """
         if random.random() < self.chance:
             nums = cp.copy(self.numbers)
             for n in self.gene.getLeaves():
@@ -111,6 +160,15 @@ class Genome:
         self.__mutateNode()
 
     def __mutateNode(self) -> None:
+        """
+        Mutates individual nodes within the binary expression tree.
+    
+        For each node, randomly decides whether to mutate it. If the node is:
+        - A leaf node: Replaces its operand with a random value from the list of allowed numbers.
+        - An internal node: Replaces its operation with a randomly chosen operation.
+    
+        Mutation is probabilistic and depends on the mutation chance.
+        """
         if self.gene.size < 2:
             return
         
@@ -123,7 +181,7 @@ class Genome:
                     if operands: #list needs to have at leas one number
                         tree.setOperand(random.choice(operands))
                 else:
-                    operations = ['+', '-', '*'] #['+', '-', '*', '/']
+                    operations = ['+', '-', '*', '/'] #['+', '-', '*']
                     operations.remove(tree.getOperation())
                     tree.setOperation(random.choice(operations))
                 break

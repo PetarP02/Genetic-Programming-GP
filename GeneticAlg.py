@@ -3,7 +3,6 @@ from node import Node
 import numpy as np
 import copy as cp
 import random
-import matplotlib.pyplot as plt
 import time
 
 class GenProg:
@@ -64,6 +63,25 @@ class GenProg:
         self.__newPopulation = [Genome(self.__goal, self.__numbers, self.__mutationChance) for _ in range(self.__populationSize)]
 
     def findSolution(self) -> list:
+        """
+        Runs the genetic programming algorithm to approximate the target goal.
+    
+        The method evolves a population of genomes over a specified number of epochs
+        using selection, crossover, and mutation. It keeps track of the best fitness
+        in each generation and terminates early if a perfect solution (fitness of 100)
+        is found. Elitism is applied to retain the top-performing genomes across generations.
+                
+        Returns:
+            list: A list of the best fitness values recorded at each generation.
+    
+        Process:
+            1. Sorts the population by fitness in descending order.
+            2. Records the best fitness in the current generation.
+            3. If a perfect solution is found (fitness = 100), the algorithm stops.
+            4. Copies the elite genomes directly into the new population.
+            5. Performs tournament selection, crossover, and mutation to fill the rest of the population.
+            6. Replaces the old population with the new one and repeats the process for the specified epochs.
+        """
         startintTime = time.perf_counter()
         graph = []
         
@@ -76,8 +94,8 @@ class GenProg:
             graph.append(self.population[0].getFitness())
 
             if int(graph[-1]) == 100:
-                break
-
+                break 
+            
             self.__newPopulation[:self.__elitism] = self.population[:self.__elitism]
             
             for j in range(self.__elitism, self.__populationSize - 1, 2):
@@ -96,6 +114,19 @@ class GenProg:
         return graph
     
     def crossover(self, genome1: 'Genome', genome2: 'Genome') -> list:
+        """
+        Performs crossover between two genomes to produce offspring.
+    
+        The method swaps subtrees between the two parent genomes at randomly
+        selected nodes to create two new child genomes.
+    
+        Args:
+            genome1 (Genome): The first parent genome.
+            genome2 (Genome): The second parent genome.
+    
+        Returns:
+            list: A list containing two new child genomes resulting from the crossover.
+        """
         node1 = random.randint(1, genome1.gene.size)
         node2 = random.randint(1, genome2.gene.size)
 
@@ -110,6 +141,15 @@ class GenProg:
         return [child1, child2]
         
     def tournament(self) -> list:
+        """
+        Selects two genomes from the population using a tournament selection method.
+    
+        The method selects 10 random genomes from the population and then picks the
+        two with the highest fitness as the winners of the tournament.
+    
+        Returns:
+            list: A list containing the indices of the two selected genomes.
+        """
         indexes = random.sample(range(len(self.population)), 10)
 
         maxFit = float('-inf')

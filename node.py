@@ -1,6 +1,18 @@
 import copy as cp
 from typing import Union
 
+# n - number of verices
+        # init : O(n)
+        # setOperation : O(log n) 
+        # setOperand : O(log n) 
+        # __replaceNode : O(log n)
+        # valueCalc : O(log n) : eval(str(self.__operand[0])) is O(N) N-number of caracters that need to be evaluated
+        #                        complexity could be O(N log n) but is N is small most of times.
+        # subTree : O(log n)
+        # getOperation : O(1)
+        # getLeaves : O(1)
+        # __str__ : O(n)
+
 class Node:
     """
     Represents a node in a binary expression tree for evaluating mathematical expressions.
@@ -34,20 +46,21 @@ class Node:
         """
         Initializes a Node in the binary expression tree.
 
-        If only `first` is provided, the Node is a leaf representing a single operand (number or string).
-        If both `operation` and `second` are provided, the Node becomes an operator node, representing 
+        If only 'first' is provided, the Node is a leaf representing a single operand (number or string).
+        If both 'operation' and 'second' are provided, the Node becomes an operator node, representing 
         an expression with two operands (left and right subtrees).
 
         Parameters:
             first (Union[Node, int, str]): The first operand or the left subtree.
-                - If `operation` is None, this becomes a leaf node containing `first`.
-                - If `operation` is provided, `first` becomes the left child node.
+                - If 'operation' is None, this becomes a leaf node containing 'first'.
+                - If 'operation' is provided, 'first' becomes the left child node.
             operation (str, optional): The operator as a string (e.g., '+', '-', '*', '/'). Defaults to None.
-            second (Union[Node, int, str], optional): The second operand or the right subtree. Required if `operation` is provided.
+            second (Union[Node, int, str], optional): The second operand or the right subtree. Required if 'operation' is provided.
 
         Raises:
-            AttributeError: If `operation` is provided without a `second` operand.
+            AttributeError: If 'operation' is provided without a 'second' operand.
         """
+        
         if operation is not None and second is None:
             raise AttributeError("Operation must have second operand")
 
@@ -71,18 +84,16 @@ class Node:
             self.size = len(self.__operator) + left.size + right.size
             self.valueCalc()
 
-        # n - broj cvorova
-        # init : O(n) , O(1)
-        # setOperation : O(log n) 
-        # setOperand : O(log n) 
-        # __replaceNode : O(log n)
-        # valueCalc : O(log n) : imamo delove gde se vrsi eval(str(self.__operand[0])) ovo jeste O(N) N-broj karaktera evaluacije
-        # subTree : O(log n)
-        # getOperation : O(1)
-        # getLeaves : O(1)
-        # __str__ : O(n)
-
     def setOperation(self, newOperation: str) -> None:
+        """
+        Sets a new operation for the node and recalculates its value.
+    
+        Args:
+            newOperation (str): The new operator ('+', '-', '*', or '/').
+    
+        Raises:
+            AttributeError: If the provided operation is invalid.
+        """
         if newOperation not in ['+', '-', '*', '/']:
             raise AttributeError(f"Operation {newOperation} is not accepted!");
         
@@ -90,6 +101,16 @@ class Node:
         self.valueCalc()
 
     def setOperand(self, newOperand: Union['Node', str, int], operandPos: int = 0) -> None:
+        """
+        Sets a new operand for the node and recalculates its value.
+    
+        Args:
+            newOperand (Union[Node, str, int]): The new operand or subtree.
+            operandPos (int, optional): The position to update (0 for left, 1 for right). Defaults to 0.
+    
+        Raises:
+            AttributeError: If the operand position is invalid or out of bounds.
+        """
         if operandPos not in [0, 1] or (len(self.__operand) == operandPos):
             raise AttributeError(f"Operand position: {operandPos} is not valid!")
         
@@ -98,7 +119,16 @@ class Node:
         self.__operand[operandPos] = newOperand
         self.valueCalc()
         
-    def __replaceNode(self, newNode: 'Node') -> None: #returns node that was in this place
+    def __replaceNode(self, newNode: 'Node') -> None:
+        """
+        Replaces the current node with a new node.
+    
+        Args:
+            newNode (Node): The new node to replace the current node.
+    
+        Raises:
+            AttributeError: If the provided 'newNode' is not of type 'Node'.
+        """
         if not isinstance(newNode, Node):
             raise AttributeError(f"Given newNode is of type {type(newNode)}, not of type Node!")
         
@@ -115,6 +145,18 @@ class Node:
         self.valueCalc()
     
     def valueCalc(self):
+        """
+        Recalculates the value of the expression represented by this node and updates the parent nodes.
+    
+        - Leaf nodes are evaluated directly based on their operand.
+        - Internal nodes are evaluated based on their operator and the values of their children.
+        - Handles division by zero by setting the value to infinity.
+    
+        Updates the following attributes:
+            - value: The calculated value of the node.
+            - __leaves: The list of leaf values in the subtree rooted at this node.
+            - size: The size of the subtree.
+        """
         tree = self
         while True:
             if len(tree.__operand) == 1:
@@ -137,6 +179,19 @@ class Node:
             tree = tree.__parent
 
     def subTree(self, pos: int, insertTree: 'Node' = None) -> 'Node':
+        """
+        Retrieves or replaces a subtree at a specified position in the binary tree.
+    
+        Args:
+            pos (int): The position of the subtree (1-based index).
+            insertTree (Node, optional): If provided, replaces the subtree at the position with this node.
+    
+        Returns:
+            Node: The subtree at the specified position.
+    
+        Raises:
+            AttributeError: If the position is out of bounds or 'insertTree' is not a valid node.
+        """
         if insertTree != None and not isinstance(insertTree, Node):
             raise AttributeError(f"Given insertTree is of type {type(insertTree)}, not of type Node!")
         if pos > self.size:
@@ -157,11 +212,26 @@ class Node:
         return tree
         
     def getOperation(self) -> str:
+        """
+        Retrieves the operation of the node.
+    
+        Returns:
+            str: The operator of the node.
+    
+        Raises:
+            AttributeError: If the node has no operator (i.e., it is a leaf node).
+        """
         if self.__operator == None:
             raise AttributeError(f"This node has no operatino!")
         return self.__operator
     
     def getLeaves(self) -> list:
+        """
+        Retrieves the list of leaf values in the subtree rooted at this node.
+    
+        Returns:
+            list: A list of leaf values.
+        """
         return self.__leaves
 
     def __str__(self) -> str:

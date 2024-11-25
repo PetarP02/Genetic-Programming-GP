@@ -90,13 +90,24 @@ class Genome:
             return False
     
     def mutate(self):
-        if random.random() < self.chance and self.gene.size > 1:
+        if random.random() < self.chance:
+            nums = cp.copy(self.numbers)
+            for n in self.gene.getLeaves():
+                if n in nums:
+                    nums.remove(n)
+            if len(nums) > 0:
+                if self.gene.value < self.goal:
+                    self.gene = Node(self.gene, '+', Node(random.choice(nums)))
+                else:
+                    self.gene = Node(self.gene, '-', Node(random.choice(nums)))
+                
+        elif random.random() < self.chance and self.gene.size > 1:
             nums = random.sample(self.numbers, k = 2)
             nodeIn = self.__generate(nums)
         
             num = random.randint(2, self.gene.size)
             self.gene.subTree(num, nodeIn)
-    
+        
         self.__mutateNode()
 
     def __mutateNode(self) -> None:
